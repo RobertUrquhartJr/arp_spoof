@@ -53,6 +53,6 @@ while True:
     print("\r[+] Packets sent: " + str(sent_packets_count)),
     # step 6 is adding comma to have it print on 1 line.
     sys.stdout.flush()  # steps 6 is flushing the buffer where Python won't print until program stops. import sys
-    time.sleep(2)  # need to import time.
+    time.sleep(2.5)  # need to import time.
 
 # ctrl+c to stop
